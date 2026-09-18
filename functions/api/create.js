@@ -1,7 +1,7 @@
 export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
-
+const title = String(body.title || "Image").trim().slice(0, 200);
     const imageUrl = String(body.image_url || "").trim();
 
     if (!imageUrl) {
