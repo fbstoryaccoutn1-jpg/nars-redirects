@@ -1,5 +1,6 @@
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
+
   const id = url.searchParams.get("id");
 
   if (!id || !/^[A-Za-z0-9_-]{4,64}$/.test(id)) {
@@ -13,12 +14,11 @@ export async function onRequestGet(context) {
   }
 
   const row = await context.env.DB
-  .prepare("SELECT id, image_url, title FROM links WHERE id = ?")
-  .bind(id)
-  .first();
-  
-  const row = await context.env.DB
-    .prepare("SELECT id, image_url FROM links WHERE id = ?")
+    .prepare(`
+      SELECT id, image_url, title
+      FROM links
+      WHERE id = ?
+    `)
     .bind(id)
     .first();
 
@@ -33,7 +33,13 @@ export async function onRequestGet(context) {
   }
 
   const imageUrl = String(row.image_url || "").trim();
-  const destination = String(context.env.DESTINATION_URL || "").trim();
+
+  const title = String(row.title || "Image").trim();
+
+  const destination = String(
+    context.env.DESTINATION_URL || ""
+  ).trim();
+
 
   if (!imageUrl) {
     return new Response("Image is not configured.", {
@@ -44,6 +50,7 @@ export async function onRequestGet(context) {
     });
   }
 
+
   if (!destination) {
     return new Response("Destination is not configured.", {
       status: 500,
@@ -53,28 +60,69 @@ export async function onRequestGet(context) {
     });
   }
 
+
   const safeImageUrl = escapeHtml(imageUrl);
+
+  const safeTitle = escapeHtml(title);
+
   const safeDestination = escapeHtml(destination);
+
 
   const html = `<!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Image">
-  <meta property="og:image" content="${safeImageUrl}">
-  <meta property="og:image:secure_url" content="${safeImageUrl}">
+  <!-- Open Graph -->
 
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Image">
-  <meta name="twitter:image" content="${safeImageUrl}">
+  <meta
+    property="og:type"
+    content="website"
+  >
 
-  <title>Image</title>
+  <meta
+    property="og:title"
+    content="${safeTitle}"
+  >
+
+  <meta
+    property="og:image"
+    content="${safeImageUrl}"
+  >
+
+  <meta
+    property="og:image:secure_url"
+    content="${safeImageUrl}"
+  >
+
+  <!-- Twitter -->
+
+  <meta
+    name="twitter:card"
+    content="summary_large_image"
+  >
+
+  <meta
+    name="twitter:title"
+    content="${safeTitle}"
+  >
+
+  <meta
+    name="twitter:image"
+    content="${safeImageUrl}"
+  >
+
+  <title>${safeTitle}</title>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
@@ -104,9 +152,18 @@ export async function onRequestGet(context) {
     .image {
       display: block;
       width: 100%;
+      max-width: 900px;
       max-height: 80vh;
       object-fit: contain;
       border-radius: 12px;
+      margin: 0 auto;
+    }
+
+    .title {
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 18px;
     }
 
     .continue {
@@ -119,8 +176,11 @@ export async function onRequestGet(context) {
       border-radius: 8px;
       font-weight: 700;
     }
+
   </style>
+
 </head>
+
 
 <body>
 
@@ -129,8 +189,12 @@ export async function onRequestGet(context) {
     <img
       class="image"
       src="${safeImageUrl}"
-      alt="Image"
+      alt="${safeTitle}"
     >
+
+    <div class="title">
+      ${safeTitle}
+    </div>
 
     <a
       class="continue"
@@ -142,29 +206,53 @@ export async function onRequestGet(context) {
 
   </main>
 
+
   <script>
+
     setTimeout(function () {
-      window.location.assign(${JSON.stringify(destination)});
+
+      window.location.assign(
+        ${JSON.stringify(destination)}
+      );
+
     }, 2500);
+
   </script>
 
 </body>
+
 </html>`;
 
-  return new Response(html, {
-    status: 200,
-    headers: {
-      "Content-Type": "text/html; charset=UTF-8",
-      "Cache-Control": "public, max-age=300"
+
+  return new Response(
+    html,
+    {
+      status: 200,
+
+      headers: {
+        "Content-Type":
+          "text/html; charset=UTF-8",
+
+        "Cache-Control":
+          "public, max-age=300"
+      }
     }
-  });
+  );
 }
 
+
 function escapeHtml(value) {
+
   return String(value)
+
     .replaceAll("&", "&amp;")
+
     .replaceAll("<", "&lt;")
+
     .replaceAll(">", "&gt;")
+
     .replaceAll('"', "&quot;")
+
     .replaceAll("'", "&#039;");
+
 }
