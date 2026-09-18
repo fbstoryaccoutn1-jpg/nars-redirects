@@ -1,130 +1,87 @@
 export async function onRequestPost(context) {
+  const { request, env } = context;
+  
   try {
-    const body = await context.request.json();
-
-    const imageUrl = String(body.image_url || "").trim();
-
-    const title = String(body.title || "Image")
-      .trim()
-      .slice(0, 200);
-
-    if (!imageUrl) {
-      return json(
-        {
-          error: "Image URL is required."
-        },
-        400
-      );
+    const body = await request.json();
+    const { slug, title, image, description, destination_url } = body;
+    
+    // Validation
+    if (!slug || !title || !image || !destination_url) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing required fields',
+        required: ['slug', 'title', 'image', 'destination_url']
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-
-    let parsedUrl;
-
+    
+    // Slug validation (alphanumeric, hyphen, underscore only)
+    if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+      return new Response(JSON.stringify({ 
+        error: 'Slug can only contain letters, numbers, hyphens and underscores' 
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // URL validation
     try {
-      parsedUrl = new URL(imageUrl);
+      new URL(destination_url);
+      new URL(image);
     } catch {
-      return json(
-        {
-          error: "Invalid image URL."
-        },
-        400
-      );
+      return new Response(JSON.stringify({ 
+        error: 'Invalid URL format. Must be full URL starting with http:// or https://' 
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-
-    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      return json(
-        {
-          error: "Only HTTP and HTTPS image URLs are allowed."
-        },
-        400
-      );
+    
+    // Check if slug already exists
+    const existing = await env.DB.prepare(
+      "SELECT slug FROM links WHERE slug = ?"
+    ).bind(slug).first();
+    
+    if (existing) {
+      return new Response(JSON.stringify({ 
+        error: 'Slug already exists. Choose a different one.' 
+      }), { 
+        status: 409,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-
-    const id = generateId();
-
-    await context.env.DB
-      .prepare(`
-        INSERT INTO links (
-          id,
-          image_url,
-          title
-        )
-        VALUES (?, ?, ?)
-      `)
-      .bind(
-        id,
-        imageUrl,
-        title || "Image"
-      )
-      .run();
-
-    const requestUrl = new URL(
-      context.request.url
-    );
-
-    const publicUrl =
-      requestUrl.origin +
-      "/pv.php?id=" +
-      encodeURIComponent(id);
-
-    return json({
+    
+    // Insert into D1
+    await env.DB.prepare(
+      `INSERT INTO links (slug, title, description, image, destination_url) 
+       VALUES (?, ?, ?, ?, ?)`
+    ).bind(slug, title, description || '', image, destination_url).run();
+    
+    const origin = new URL(request.url).origin;
+    
+    return new Response(JSON.stringify({ 
       success: true,
-      id: id,
-      title: title || "Image",
-      image_url: imageUrl,
-      url: publicUrl
-    });
-
-  } catch (error) {
-
-    return json(
-      {
-        error: "Unable to create link."
-      },
-      500
-    );
-
-  }
-}
-
-
-function generateId() {
-
-  const chars =
-    "0123456789abcdefghijklmnopqrstuvwxyz";
-
-  const bytes =
-    new Uint8Array(8);
-
-  crypto.getRandomValues(bytes);
-
-  let result = "";
-
-  for (const byte of bytes) {
-    result +=
-      chars[byte % chars.length];
-  }
-
-  return result;
-}
-
-
-function json(
-  data,
-  status = 200
-) {
-
-  return new Response(
-    JSON.stringify(data),
-    {
-      status: status,
-
-      headers: {
-        "Content-Type":
-          "application/json; charset=UTF-8",
-
-        "Cache-Control":
-          "no-store"
+      message: 'Link created successfully',
+      data: {
+        slug,
+        title,
+        short_url: `${origin}/go/${slug}`,
+        destination_url
       }
-    }
-  );
+    }), { 
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+  } catch (error) {
+    return new Response(JSON.stringify({ 
+      error: 'Server error',
+      details: error.message 
+    }), { 
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }
