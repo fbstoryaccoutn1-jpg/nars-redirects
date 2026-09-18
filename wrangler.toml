@@ -3,5 +3,5 @@ compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "links-db"
-database_id = "your-database-id-here"
+database_name = "nars-links"
+database_id = "24ae1b1c-a1d0-4a57-be51-864bdf42ea6d"
