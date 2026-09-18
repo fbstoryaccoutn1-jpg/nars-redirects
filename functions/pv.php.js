@@ -1,6 +1,5 @@
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
-
   const id = url.searchParams.get("id");
 
   if (!id || !/^[A-Za-z0-9_-]{4,64}$/.test(id)) {
@@ -33,13 +32,7 @@ export async function onRequestGet(context) {
   }
 
   const imageUrl = String(row.image_url || "").trim();
-
   const title = String(row.title || "Image").trim();
-
-  const destination = String(
-    context.env.DESTINATION_URL || ""
-  ).trim();
-
 
   if (!imageUrl) {
     return new Response("Image is not configured.", {
@@ -50,23 +43,18 @@ export async function onRequestGet(context) {
     });
   }
 
-
-  if (!destination) {
-    return new Response("Destination is not configured.", {
-      status: 500,
-      headers: {
-        "Content-Type": "text/plain; charset=UTF-8"
-      }
-    });
-  }
-
+  /*
+   * IMPORTANT:
+   * The browser goes to /go/{id}.
+   * /go/{id} is responsible for the final 302 redirect.
+   */
+  const goUrl =
+    url.origin +
+    "/go/" +
+    encodeURIComponent(id);
 
   const safeImageUrl = escapeHtml(imageUrl);
-
   const safeTitle = escapeHtml(title);
-
-  const safeDestination = escapeHtml(destination);
-
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -181,7 +169,6 @@ export async function onRequestGet(context) {
 
 </head>
 
-
 <body>
 
   <main class="container">
@@ -198,7 +185,7 @@ export async function onRequestGet(context) {
 
     <a
       class="continue"
-      href="${safeDestination}"
+      href="${escapeHtml(goUrl)}"
       rel="nofollow"
     >
       Continue
@@ -206,53 +193,31 @@ export async function onRequestGet(context) {
 
   </main>
 
-
   <script>
-
     setTimeout(function () {
-
-      window.location.assign(
-        ${JSON.stringify(destination)}
-      );
-
+      window.location.assign(${JSON.stringify(goUrl)});
     }, 2500);
-
   </script>
 
 </body>
 
 </html>`;
 
-
-  return new Response(
-    html,
-    {
-      status: 200,
-
-      headers: {
-        "Content-Type":
-          "text/html; charset=UTF-8",
-
-        "Cache-Control":
-          "public, max-age=300"
-      }
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=UTF-8",
+      "Cache-Control": "public, max-age=300"
     }
-  );
+  });
 }
 
 
 function escapeHtml(value) {
-
   return String(value)
-
     .replaceAll("&", "&amp;")
-
     .replaceAll("<", "&lt;")
-
     .replaceAll(">", "&gt;")
-
     .replaceAll('"', "&quot;")
-
     .replaceAll("'", "&#039;");
-
 }
