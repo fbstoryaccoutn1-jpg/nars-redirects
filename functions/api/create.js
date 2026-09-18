@@ -1,16 +1,29 @@
 export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
+
     const imageUrl = String(body.image_url || "").trim();
 
     if (!imageUrl) {
-      return json({ error: "Image URL is required." }, 400);
+      return json({
+        error: "Image URL is required."
+      }, 400);
     }
 
+    let parsedUrl;
+
     try {
-      new URL(imageUrl);
+      parsedUrl = new URL(imageUrl);
     } catch {
-      return json({ error: "Invalid image URL." }, 400);
+      return json({
+        error: "Invalid image URL."
+      }, 400);
+    }
+
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      return json({
+        error: "Only HTTP and HTTPS image URLs are allowed."
+      }, 400);
     }
 
     const id = generateId();
@@ -32,7 +45,7 @@ export async function onRequestPost(context) {
 
     return json({
       success: true,
-      id,
+      id: id,
       image_url: imageUrl,
       url: publicUrl
     });
@@ -46,6 +59,7 @@ export async function onRequestPost(context) {
 
 function generateId() {
   const chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+
   const bytes = new Uint8Array(8);
 
   crypto.getRandomValues(bytes);
@@ -60,11 +74,14 @@ function generateId() {
 }
 
 function json(data, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json; charset=UTF-8",
-      "Cache-Control": "no-store"
+  return new Response(
+    JSON.stringify(data),
+    {
+      status: status,
+      headers: {
+        "Content-Type": "application/json; charset=UTF-8",
+        "Cache-Control": "no-store"
+      }
     }
-  });
+  );
 }
