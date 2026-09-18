@@ -1,569 +1,77 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>Nars Link Generator</title>
-
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Link Cloaker</title>
   <style>
-
-    * {
-      box-sizing: border-box;
-    }
-
-
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-    }
-
-
-    body {
-
+    * { box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-
-      background: #0f1117;
-
-      color: #ffffff;
-
-      font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-      padding: 40px 20px;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
     }
-
-
-    .container {
-
-      width: min(700px, 100%);
-
-      margin: 0 auto;
+    .container { padding: 40px; }
+    h1 { font-size: 3em; margin-bottom: 20px; }
+    p { font-size: 1.2em; opacity: 0.9; margin-bottom: 40px; }
+    .btn {
+      display: inline-block;
+      padding: 15px 40px;
+      background: white;
+      color: #667eea;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 1.1em;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
-
-
-    h1 {
-
-      margin: 0 0 8px;
-
-      font-size: 30px;
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
-
-
-    .sub {
-
-      color: #999999;
-
-      margin-bottom: 30px;
-
-      line-height: 1.5;
+    .features {
+      margin-top: 60px;
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
     }
-
-
-    .card {
-
-      background: #191c24;
-
-      border: 1px solid #2b2f3a;
-
-      border-radius: 16px;
-
-      padding: 25px;
-    }
-
-
-    label {
-
-      display: block;
-
-      margin-bottom: 8px;
-
-      font-weight: 700;
-    }
-
-
-    input {
-
-      width: 100%;
-
-      padding: 14px;
-
-      border-radius: 9px;
-
-      border: 1px solid #3a3f4b;
-
-      background: #101219;
-
-      color: #ffffff;
-
-      outline: none;
-
-      margin-bottom: 20px;
-
-      font-size: 15px;
-    }
-
-
-    input:focus {
-
-      border-color: #777777;
-    }
-
-
-    button {
-
-      width: 100%;
-
-      padding: 14px;
-
-      border: 0;
-
-      border-radius: 9px;
-
-      background: #ffffff;
-
-      color: #111111;
-
-      font-size: 16px;
-
-      font-weight: 700;
-
-      cursor: pointer;
-    }
-
-
-    button:disabled {
-
-      opacity: 0.5;
-
-      cursor: not-allowed;
-    }
-
-
-    .result {
-
-      display: none;
-
-      margin-top: 25px;
-
-      padding: 18px;
-
-      background: #101219;
-
+    .feature {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
       border-radius: 10px;
+      backdrop-filter: blur(10px);
     }
-
-
-    .result input {
-
-      margin-top: 10px;
-
-      margin-bottom: 10px;
-    }
-
-
-    .copy {
-
-      background: #2b2f3a;
-
-      color: #ffffff;
-
-      margin-top: 5px;
-    }
-
-
-    .message {
-
-      margin-top: 15px;
-
-      color: #aaaaaa;
-
-      white-space: pre-wrap;
-
-      line-height: 1.5;
-    }
-
-
-    .preview {
-
-      display: none;
-
-      margin-top: 20px;
-
-      border-radius: 10px;
-
-      overflow: hidden;
-
-      background: #101219;
-
-      padding: 10px;
-    }
-
-
-    .preview img {
-
-      width: 100%;
-
-      max-height: 400px;
-
-      object-fit: contain;
-
-      display: block;
-
-      border-radius: 8px;
-    }
-
+    .feature h3 { margin: 0 0 10px 0; }
+    .feature p { margin: 0; font-size: 0.9em; opacity: 0.8; }
   </style>
-
 </head>
-
-
 <body>
-
-
-<div class="container">
-
-
-  <h1>
-    Nars Link Generator
-  </h1>
-
-
-  <div class="sub">
-    Add an image URL and title to generate a unique preview link.
-  </div>
-
-
-  <div class="card">
-
-
-    <!-- IMAGE URL -->
-
-    <label for="imageUrl">
-      Image URL
-    </label>
-
-    <input
-      id="imageUrl"
-      type="url"
-      placeholder="https://example.com/image.jpg"
-      autocomplete="off"
-    >
-
-
-    <!-- TITLE -->
-
-    <label for="title">
-      Title
-    </label>
-
-    <input
-      id="title"
-      type="text"
-      placeholder="Image"
-      autocomplete="off"
-      maxlength="200"
-    >
-
-
-    <!-- GENERATE -->
-
-    <button id="generate">
-      Generate Link
-    </button>
-
-
-    <!-- RESULT -->
-
-    <div
-      id="result"
-      class="result"
-    >
-
-      <label>
-        Generated Link
-      </label>
-
-
-      <input
-        id="generatedLink"
-        type="text"
-        readonly
-      >
-
-
-      <button
-        id="copy"
-        class="copy"
-      >
-        Copy Link
-      </button>
-
-
-      <div
-        id="preview"
-        class="preview"
-      >
-
-        <img
-          id="previewImage"
-          src=""
-          alt="Preview"
-        >
-
+  <div class="container">
+    <h1>🔗 Smart Link Cloaker</h1>
+    <p>Create links that show custom previews on Twitter/X<br>but redirect users to your real destination</p>
+    <a href="/admin" class="btn">Create New Link</a>
+    
+    <div class="features">
+      <div class="feature">
+        <h3>🤖 Bot Detection</h3>
+        <p>Shows 200 + HTML to crawlers</p>
       </div>
-
+      <div class="feature">
+        <h3>🔀 302 Redirect</h3>
+        <p>Real users redirected instantly</p>
+      </div>
+      <div class="feature">
+        <h3>📱 Custom Previews</h3>
+        <p>Control Twitter card images</p>
+      </div>
     </div>
-
-
-    <div
-      id="message"
-      class="message"
-    ></div>
-
-
   </div>
-
-
-</div>
-
-
-<script>
-
-
-  const imageUrl =
-    document.getElementById("imageUrl");
-
-
-  const title =
-    document.getElementById("title");
-
-
-  const generate =
-    document.getElementById("generate");
-
-
-  const result =
-    document.getElementById("result");
-
-
-  const generatedLink =
-    document.getElementById("generatedLink");
-
-
-  const copy =
-    document.getElementById("copy");
-
-
-  const message =
-    document.getElementById("message");
-
-
-  const preview =
-    document.getElementById("preview");
-
-
-  const previewImage =
-    document.getElementById("previewImage");
-
-
-  generate.addEventListener(
-    "click",
-    async () => {
-
-      const image =
-        imageUrl.value.trim();
-
-
-      const titleValue =
-        title.value.trim() || "Image";
-
-
-      if (!image) {
-
-        message.textContent =
-          "Please enter an image URL.";
-
-        return;
-      }
-
-
-      try {
-
-        const parsed =
-          new URL(image);
-
-
-        if (
-          !["http:", "https:"]
-            .includes(parsed.protocol)
-        ) {
-
-          throw new Error();
-
-        }
-
-      } catch {
-
-        message.textContent =
-          "Invalid image URL.";
-
-        return;
-      }
-
-
-      generate.disabled = true;
-
-      message.textContent =
-        "Generating...";
-
-
-      result.style.display =
-        "none";
-
-
-      preview.style.display =
-        "none";
-
-
-      try {
-
-
-        const response =
-          await fetch(
-            "/api/create",
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
-
-              body:
-                JSON.stringify({
-                  image_url: image,
-                  title: titleValue
-                })
-            }
-          );
-
-
-        const data =
-          await response.json();
-
-
-        if (!response.ok) {
-
-          throw new Error(
-            data.error ||
-            "Failed to generate link."
-          );
-
-        }
-
-
-        generatedLink.value =
-          data.url;
-
-
-        previewImage.src =
-          data.image_url;
-
-
-        result.style.display =
-          "block";
-
-
-        preview.style.display =
-          "block";
-
-
-        message.textContent =
-          "Link generated successfully.";
-
-      }
-
-
-      catch (error) {
-
-        message.textContent =
-          error.message;
-
-      }
-
-
-      finally {
-
-        generate.disabled =
-          false;
-
-      }
-
-    }
-  );
-
-
-  copy.addEventListener(
-    "click",
-    async () => {
-
-      try {
-
-        await navigator.clipboard
-          .writeText(
-            generatedLink.value
-          );
-
-
-        copy.textContent =
-          "Copied!";
-
-
-        setTimeout(
-          () => {
-
-            copy.textContent =
-              "Copy Link";
-
-          },
-          1500
-        );
-
-      }
-
-      catch {
-
-        generatedLink.select();
-
-        document.execCommand(
-          "copy"
-        );
-
-        copy.textContent =
-          "Copied!";
-
-      }
-
-    }
-  );
-
-
-</script>
-
-
 </body>
-
 </html>
