@@ -13,6 +13,11 @@ export async function onRequestGet(context) {
   }
 
   const row = await context.env.DB
+  .prepare("SELECT id, image_url, title FROM links WHERE id = ?")
+  .bind(id)
+  .first();
+  
+  const row = await context.env.DB
     .prepare("SELECT id, image_url FROM links WHERE id = ?")
     .bind(id)
     .first();
